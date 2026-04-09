@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Year-End Memories</title>
+<link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- INPUT CARD -->
+<div class="card">
+  <div class="profile">
+    <div class="avatar" id="avatarPreview">👤</div>
+    <label for="avatarInput" class="file-btn">Upload Photo</label>
+    <input type="file" id="avatarInput" accept="image/*">
+  </div>
+
+  <input id="nama" placeholder="Full Name">
+  <input id="kelas" placeholder="Class">
+  <input id="tahun" placeholder="Graduation Year">
+  <input id="impian" placeholder="Dream after graduation">
+
+  <textarea id="kenang" placeholder="Your most meaningful memory" maxlength="300"></textarea>
+  <div class="char-counter"><span id="kenangCount">0</span>/300</div>
+
+  <textarea id="pesan" placeholder="A message to your future self" maxlength="300"></textarea>
+  <div class="char-counter"><span id="pesanCount">0</span>/300</div>
+
+  <button id="saveBtn">Save Memories</button>
+  <button id="downloadBtn" style="margin-top:10px">📥 Download Card</button>
+
+  <label for="images" class="file-btn" style="margin-top:15px">📸 Add Memory Photos</label>
+  <input type="file" id="images" multiple accept="image/*">
+
+  <div style="margin-top:15px;text-align:center;">
+    <input type="text" id="gradientInput" placeholder="e.g. linear-gradient(135deg,#0f2027,#203a43)">
+    <button id="gradientBtn" style="width:auto;margin-top:10px">Apply Background</button>
+  </div>
+
+  <div id="congrats"></div>
+</div>
+
+<!-- RESULT CARD -->
+<div class="card result" id="resultCard">
+  <p>My name is <b id="outNama"></b> from class <b id="outKelas"></b>. The year <b id="outTahun"></b> marks the end of one journey.</p>
+  <p>After graduation, I dream of becoming <b id="outImpian"></b>.</p>
+  <p><b>My most meaningful memory:</b></p>
+  <p id="outKenang"></p>
+  <p><b>A message to my future self:</b></p>
+  <blockquote id="outPesan"></blockquote>
+</div>
+
+<!-- GALLERY -->
+<div class="card">
+  <h3>Memory Gallery</h3>
+  <div id="gallery" class="gallery"></div>
+</div>
+
+<!-- CROP MODAL -->
+<div id="cropModal">
+  <div id="cropContent">
+    <h3>Crop Profile Photo</h3>
+    <img id="cropImage" style="max-width:100%">
+    <div style="margin-top:10px; display:flex; gap:10px; justify-content:center;">
+      <button id="cropConfirm">Save</button>
+      <button id="cropCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

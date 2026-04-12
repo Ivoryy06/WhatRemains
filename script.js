@@ -1,10 +1,19 @@
 let userInitiatedAvatarPick = false;
 
+const BG_PRESETS = [
+  "linear-gradient(160deg,#0f2027,#203a43,#2c5364)",
+  "linear-gradient(160deg,#1a1a2e,#16213e,#0f3460)",
+  "linear-gradient(160deg,#200122,#6f0000)",
+  "linear-gradient(160deg,#0d324d,#7f5a83)",
+  "linear-gradient(160deg,#134e5e,#71b280)",
+  "linear-gradient(160deg,#1f1c2c,#928dab)",
+  "linear-gradient(160deg,#373b44,#4286f4)",
+  "linear-gradient(160deg,#2d1b69,#11998e)",
+];
+
 document.addEventListener("DOMContentLoaded", () => {
 
-  /* ===============================
-     ELEMENT REFERENCES
-  =============================== */
+  /* ── ELEMENTS ── */
   const nama   = document.getElementById("nama");
   const kelas  = document.getElementById("kelas");
   const tahun  = document.getElementById("tahun");
@@ -19,66 +28,114 @@ document.addEventListener("DOMContentLoaded", () => {
   const outKenang = document.getElementById("outKenang");
   const outPesan  = document.getElementById("outPesan");
 
-  const resultCard  = document.getElementById("resultCard");
-  const congratsDiv = document.getElementById("congrats");
-  const saveBtn     = document.getElementById("saveBtn");
-  const gradientBtn = document.getElementById("gradientBtn");
+  const resultCard   = document.getElementById("resultCard");
+  const resultAvatar = document.getElementById("resultAvatar");
+  const saveBtn      = document.getElementById("saveBtn");
+  const gradientBtn  = document.getElementById("gradientBtn");
+  const resetBgBtn   = document.getElementById("resetBgBtn");
+  const kenangCount  = document.getElementById("kenangCount");
+  const pesanCount   = document.getElementById("pesanCount");
 
-  const kenangCount = document.getElementById("kenangCount");
-  const pesanCount  = document.getElementById("pesanCount");
+  /* ── TOAST ── */
+  const toastEl = document.getElementById("toast");
+  let toastTimer;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2500);
+  }
 
-  /* ===============================
-     LOAD SAVED GRADIENT
-  =============================== */
+  /* ── THEME TOGGLE ── */
+  const themeToggle = document.getElementById("themeToggle");
+  if (localStorage.getItem("theme") === "light") {
+    document.body.classList.add("light");
+    themeToggle.textContent = "☀️";
+  }
+  themeToggle.addEventListener("click", () => {
+    document.body.classList.toggle("light");
+    const isLight = document.body.classList.contains("light");
+    themeToggle.textContent = isLight ? "☀️" : "🌙";
+    localStorage.setItem("theme", isLight ? "light" : "dark");
+  });
+
+  /* ── BACKGROUND ── */
+  const DEFAULT_BG = "linear-gradient(160deg,#0f2027,#203a43,#2c5364)";
+
+  function applyBg(val) {
+    document.body.style.background = val;
+    localStorage.setItem("userGradient", val);
+  }
+
   const savedGradient = localStorage.getItem("userGradient");
   if (savedGradient) {
     document.body.style.background = savedGradient;
     document.getElementById("gradientInput").value = savedGradient;
   }
 
-  /* ===============================
-     INDEXEDDB SETUP
-  =============================== */
-  const dbPromise = new Promise((resolve, reject) => {
-    const request = indexedDB.open("MemoryAppDB", 1);
-    request.onupgradeneeded = () => request.result.createObjectStore("images");
-    request.onsuccess = () => resolve(request.result);
-    request.onerror  = () => reject(request.error);
+  // Preset swatches
+  const swatchContainer = document.getElementById("presetSwatches");
+  BG_PRESETS.forEach(bg => {
+    const s = document.createElement("div");
+    s.className = "swatch";
+    s.style.background = bg;
+    s.title = bg;
+    s.addEventListener("click", () => {
+      applyBg(bg);
+      document.getElementById("gradientInput").value = bg;
+      toast("Background applied");
+    });
+    swatchContainer.appendChild(s);
   });
 
-  /* ===============================
-     AVATAR & CROPPER
-  =============================== */
-  const avatarInput  = document.getElementById("avatarInput");
-  const avatarPreview = document.getElementById("avatarPreview");
-  const cropModal    = document.getElementById("cropModal");
-  const cropImage    = document.getElementById("cropImage");
-  const cropConfirm  = document.getElementById("cropConfirm");
-  const cropCancel   = document.getElementById("cropCancel");
+  gradientBtn.addEventListener("click", () => {
+    const val = document.getElementById("gradientInput").value.trim();
+    if (!val) return;
+    applyBg(val);
+    toast("Background applied");
+  });
 
+  resetBgBtn.addEventListener("click", () => {
+    applyBg(DEFAULT_BG);
+    document.getElementById("gradientInput").value = "";
+    toast("Background reset");
+  });
+
+  /* ── INDEXEDDB ── */
+  const dbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open("MemoryAppDB", 1);
+    req.onupgradeneeded = () => req.result.createObjectStore("images");
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
+  });
+
+  /* ── AVATAR & CROPPER ── */
+  const avatarInput   = document.getElementById("avatarInput");
+  const avatarPreview = document.getElementById("avatarPreview");
+  const cropModal     = document.getElementById("cropModal");
+  const cropImage     = document.getElementById("cropImage");
+  const cropConfirm   = document.getElementById("cropConfirm");
+  const cropCancel    = document.getElementById("cropCancel");
   let cropper = null;
 
-  // Force modal closed on load
   cropModal.style.display = "none";
   cropImage.src = "";
 
-  // Load saved avatar
-  const savedAvatar = localStorage.getItem("userAvatar");
-  if (savedAvatar) {
-    avatarPreview.innerHTML = `<img src="${savedAvatar}" alt="Profile">`;
+  function setAvatar(dataUrl) {
+    avatarPreview.innerHTML = `<img src="${dataUrl}" alt="Profile">`;
+    resultAvatar.innerHTML  = `<img src="${dataUrl}" alt="Profile">`;
+    localStorage.setItem("userAvatar", dataUrl);
   }
 
-  // Set flag when user intentionally clicks the label
+  const savedAvatar = localStorage.getItem("userAvatar");
+  if (savedAvatar) setAvatar(savedAvatar);
+
   document.querySelector('label[for="avatarInput"]').addEventListener("click", () => {
     userInitiatedAvatarPick = true;
   });
 
   avatarInput.addEventListener("change", () => {
-    if (!userInitiatedAvatarPick) {
-      avatarInput.value = "";
-      return;
-    }
-
+    if (!userInitiatedAvatarPick) { avatarInput.value = ""; return; }
     const file = avatarInput.files[0];
     if (!file) return;
     userInitiatedAvatarPick = false;
@@ -87,34 +144,21 @@ document.addEventListener("DOMContentLoaded", () => {
     reader.onload = e => {
       cropImage.src = e.target.result;
       cropModal.style.display = "flex";
-
       if (cropper) { cropper.destroy(); cropper = null; }
-
-      cropper = new Cropper(cropImage, {
-        aspectRatio: 1,
-        viewMode: 1,
-        autoCropArea: 1,
-        background: false,
-        responsive: true
-      });
+      cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1, autoCropArea: 1, background: false });
     };
     reader.readAsDataURL(file);
   });
 
   cropConfirm.addEventListener("click", () => {
     if (!cropper) return;
-
-    const canvas = cropper.getCroppedCanvas({ width: 256, height: 256, imageSmoothingQuality: "high" });
-    const dataUrl = canvas.toDataURL("image/png");
-
-    avatarPreview.innerHTML = `<img src="${dataUrl}" alt="Profile">`;
-    localStorage.setItem("userAvatar", dataUrl);
-
-    cropper.destroy();
-    cropper = null;
+    const dataUrl = cropper.getCroppedCanvas({ width: 256, height: 256, imageSmoothingQuality: "high" }).toDataURL("image/png");
+    setAvatar(dataUrl);
+    cropper.destroy(); cropper = null;
     cropImage.src = "";
     cropModal.style.display = "none";
     avatarInput.value = "";
+    toast("Profile photo saved");
   });
 
   cropCancel.addEventListener("click", () => {
@@ -124,9 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
     avatarInput.value = "";
   });
 
-  /* ===============================
-     SAVE & RENDER
-  =============================== */
+  /* ── FIELDS ── */
   function loadFields() {
     nama.value   = localStorage.getItem("nama")   || "";
     kelas.value  = localStorage.getItem("kelas")  || "";
@@ -134,13 +176,9 @@ document.addEventListener("DOMContentLoaded", () => {
     impian.value = localStorage.getItem("impian") || "";
     kenang.value = localStorage.getItem("kenang") || "";
     pesan.value  = localStorage.getItem("pesan")  || "";
-
     kenangCount.textContent = kenang.value.length;
     pesanCount.textContent  = pesan.value.length;
-
-    if (nama.value || kelas.value || tahun.value) {
-      resultCard.classList.add("show");
-    }
+    if (nama.value || kelas.value || tahun.value) resultCard.classList.add("show");
   }
 
   function updateOutput() {
@@ -152,75 +190,52 @@ document.addEventListener("DOMContentLoaded", () => {
     outPesan.textContent  = pesan.value;
   }
 
-  function renderCongrats() {
-    const n  = nama.value   || "Friend";
-    const k  = kelas.value  || "your class";
-    const t  = tahun.value  || "this year";
-    const i  = impian.value || "your dream";
-
-    congratsDiv.innerHTML = `
-      <p>
-        Congratulations <b>${n}</b> from <b>${k}</b> on graduating in <b>${t}</b>!
-        May your dream of becoming <b>${i}</b> come true.
-      </p>
-    `;
-    congratsDiv.classList.add("show");
-  }
-
   function saveData() {
-    localStorage.setItem("nama",   nama.value);
-    localStorage.setItem("kelas",  kelas.value);
-    localStorage.setItem("tahun",  tahun.value);
-    localStorage.setItem("impian", impian.value);
-    localStorage.setItem("kenang", kenang.value);
-    localStorage.setItem("pesan",  pesan.value);
-
+    ["nama","kelas","tahun","impian","kenang","pesan"].forEach(k =>
+      localStorage.setItem(k, document.getElementById(k).value)
+    );
     updateOutput();
-    renderCongrats();
     resultCard.classList.add("show");
+    toast("Memories saved ✓");
   }
 
   saveBtn.addEventListener("click", saveData);
 
-  /* ===============================
-     AUTO-SAVE (debounced)
-  =============================== */
-  function debounce(fn, delay) {
-    let timer;
-    return (...args) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => fn(...args), delay);
-    };
-  }
-
-  const autoSave = debounce(() => {
-    localStorage.setItem("nama",   nama.value);
-    localStorage.setItem("kelas",  kelas.value);
-    localStorage.setItem("tahun",  tahun.value);
-    localStorage.setItem("impian", impian.value);
-    localStorage.setItem("kenang", kenang.value);
-    localStorage.setItem("pesan",  pesan.value);
-    updateOutput();
-  }, 800);
-
+  // Debounced auto-save
+  let autoTimer;
   [nama, kelas, tahun, impian, kenang, pesan].forEach(el => {
-    el.addEventListener("input", autoSave);
+    el.addEventListener("input", () => {
+      clearTimeout(autoTimer);
+      autoTimer = setTimeout(saveData, 900);
+    });
   });
 
-  /* ===============================
-     CHARACTER COUNTER
-  =============================== */
-  kenang.addEventListener("input", () => {
-    kenangCount.textContent = kenang.value.length;
+  // Char counters
+  kenang.addEventListener("input", () => kenangCount.textContent = kenang.value.length);
+  pesan.addEventListener("input",  () => pesanCount.textContent  = pesan.value.length);
+
+  /* ── CLEAR ALL ── */
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    if (!confirm("Clear all saved data? This cannot be undone.")) return;
+    localStorage.clear();
+    [nama, kelas, tahun, impian, kenang, pesan].forEach(el => el.value = "");
+    kenangCount.textContent = "0";
+    pesanCount.textContent  = "0";
+    avatarPreview.innerHTML = "👤";
+    resultAvatar.innerHTML  = "";
+    resultCard.classList.remove("show");
+    updateOutput();
+    images = [];
+    renderGallery();
+    dbPromise.then(db => {
+      const tx = db.transaction("images", "readwrite");
+      tx.objectStore("images").delete("galleryImages");
+    });
+    document.body.style.background = DEFAULT_BG;
+    toast("All data cleared");
   });
 
-  pesan.addEventListener("input", () => {
-    pesanCount.textContent = pesan.value.length;
-  });
-
-  /* ===============================
-     GALLERY (IndexedDB)
-  =============================== */
+  /* ── GALLERY ── */
   const gallery    = document.getElementById("gallery");
   const imageInput = document.getElementById("images");
   let images    = [];
@@ -232,42 +247,23 @@ document.addEventListener("DOMContentLoaded", () => {
       const tx = db.transaction("images", "readwrite");
       tx.objectStore("images").put(images, "galleryImages");
       tx.oncomplete = () => renderGallery();
-    } catch (err) {
-      console.error("Failed to save gallery:", err);
-    }
+    } catch (err) { console.error(err); }
   }
 
   async function initGallery() {
     try {
-      const db = await dbPromise;
-      const request = db.transaction("images").objectStore("images").get("galleryImages");
-      request.onsuccess = () => {
-        images = request.result || [];
-        renderGallery();
-      };
-    } catch (err) {
-      console.error("Failed to load gallery:", err);
-    }
+      const db  = await dbPromise;
+      const req = db.transaction("images").objectStore("images").get("galleryImages");
+      req.onsuccess = () => { images = req.result || []; renderGallery(); };
+    } catch (err) { console.error(err); }
   }
 
   function renderGallery() {
     gallery.innerHTML = "";
-
     if (images.length === 0) {
-      gallery.innerHTML = `
-        <div style="
-          width: 100%;
-          text-align: center;
-          padding: 30px 0;
-          color: rgba(255,255,255,0.4);
-          font-size: 14px;
-        ">
-          📷 No photos yet.<br>Add your first memory above.
-        </div>
-      `;
+      gallery.innerHTML = `<div class="gallery-empty">📷 No photos yet.<br>Add your first memory above.</div>`;
       return;
     }
-
     images.forEach((src, index) => {
       const wrapper = document.createElement("div");
       wrapper.className = "gallery-item";
@@ -275,20 +271,16 @@ document.addEventListener("DOMContentLoaded", () => {
       wrapper.dataset.index = index;
 
       const img = document.createElement("img");
-      img.src = src;
-      img.loading = "lazy";
-      img.alt = `Memory photo ${index + 1}`;
+      img.src = src; img.loading = "lazy"; img.alt = `Memory photo ${index + 1}`;
+      img.addEventListener("click", () => openLightbox(src));
 
-      const removeBtn = document.createElement("button");
-      removeBtn.textContent = "✕";
-      removeBtn.setAttribute("aria-label", "Remove photo");
-      removeBtn.onclick = () => {
-        images.splice(index, 1);
-        saveGallery();
-      };
+      const btn = document.createElement("button");
+      btn.className = "remove-btn";
+      btn.textContent = "✕";
+      btn.setAttribute("aria-label", "Remove photo");
+      btn.onclick = e => { e.stopPropagation(); images.splice(index, 1); saveGallery(); };
 
-      wrapper.appendChild(img);
-      wrapper.appendChild(removeBtn);
+      wrapper.append(img, btn);
       gallery.appendChild(wrapper);
     });
   }
@@ -296,59 +288,53 @@ document.addEventListener("DOMContentLoaded", () => {
   imageInput.addEventListener("change", () => {
     Array.from(imageInput.files).forEach(file => {
       const reader = new FileReader();
-      reader.onload = e => {
-        images.push(e.target.result);
-        saveGallery();
-      };
+      reader.onload = e => { images.push(e.target.result); saveGallery(); };
       reader.readAsDataURL(file);
     });
     imageInput.value = "";
+    toast("Photos added");
   });
 
-  // Drag-to-reorder
   gallery.addEventListener("dragstart", e => {
     const item = e.target.closest(".gallery-item");
-    if (!item) return;
-    dragIndex = Number(item.dataset.index);
+    if (item) dragIndex = Number(item.dataset.index);
   });
-
   gallery.addEventListener("dragover", e => e.preventDefault());
-
   gallery.addEventListener("drop", e => {
     const item = e.target.closest(".gallery-item");
     if (!item || dragIndex === null) return;
     const dropIndex = Number(item.dataset.index);
-    const moved = images.splice(dragIndex, 1)[0];
-    images.splice(dropIndex, 0, moved);
+    images.splice(dropIndex, 0, images.splice(dragIndex, 1)[0]);
     dragIndex = null;
     saveGallery();
   });
 
-  /* ===============================
-     GRADIENT CUSTOMIZER
-  =============================== */
-  gradientBtn.addEventListener("click", () => {
-    const val = document.getElementById("gradientInput").value.trim();
-    if (!val) return;
-    document.body.style.background = val;
-    localStorage.setItem("userGradient", val);
-  });
+  /* ── LIGHTBOX ── */
+  const lightbox      = document.getElementById("lightbox");
+  const lightboxImg   = document.getElementById("lightboxImg");
+  const lightboxClose = document.getElementById("lightboxClose");
 
-  /* ===============================
-     DOWNLOAD
-  =============================== */
+  function openLightbox(src) {
+    lightboxImg.src = src;
+    lightbox.classList.add("open");
+  }
+
+  lightboxClose.addEventListener("click", () => lightbox.classList.remove("open"));
+  lightbox.addEventListener("click", e => { if (e.target === lightbox) lightbox.classList.remove("open"); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") lightbox.classList.remove("open"); });
+
+  /* ── DOWNLOAD ── */
   document.getElementById("downloadBtn").addEventListener("click", () => {
-    html2canvas(resultCard, { scale: 2 }).then(canvas => {
+    html2canvas(resultCard, { scale: 2, useCORS: true }).then(canvas => {
       const a = document.createElement("a");
-      a.download = "my-memories.png";
+      a.download = `${nama.value || "memories"}.png`;
       a.href = canvas.toDataURL();
       a.click();
+      toast("Card downloaded");
     });
   });
 
-  /* ===============================
-     INIT
-  =============================== */
+  /* ── INIT ── */
   loadFields();
   updateOutput();
   initGallery();

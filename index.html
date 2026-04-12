@@ -58,6 +58,14 @@
       <button id="saveBtn">💾 Save</button>
       <button id="downloadBtn" class="btn-secondary">📥 Download Card</button>
     </div>
+    <div class="btn-row" style="margin-top:10px">
+      <button id="shareBtn" class="btn-secondary">🔗 Share Card</button>
+      <button id="exportBtn" class="btn-secondary">📤 Export Backup</button>
+    </div>
+    <div style="margin-top:10px">
+      <label for="importFile" class="file-btn-sm" style="width:100%;text-align:center;display:block">📥 Import Backup</label>
+      <input type="file" id="importFile" accept=".json">
+    </div>
 
     <details class="collapsible">
       <summary>🎨 Customize Background</summary>
@@ -90,6 +98,10 @@
     <div class="result-section">
       <p class="section-label">To my future self</p>
       <blockquote id="outPesan"></blockquote>
+    </div>
+    <div class="result-section" id="quoteSection">
+      <p class="section-label">Quote of the day</p>
+      <blockquote id="quoteText"></blockquote>
     </div>
   </div>
 
@@ -128,6 +140,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

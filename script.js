@@ -11,6 +11,19 @@ const BG_PRESETS = [
   "linear-gradient(160deg,#2d1b69,#11998e)",
 ];
 
+const QUOTES = [
+  "The future belongs to those who believe in the beauty of their dreams. — Eleanor Roosevelt",
+  "It always seems impossible until it's done. — Nelson Mandela",
+  "Don't watch the clock; do what it does. Keep going. — Sam Levenson",
+  "You are never too old to set another goal or to dream a new dream. — C.S. Lewis",
+  "The secret of getting ahead is getting started. — Mark Twain",
+  "Believe you can and you're halfway there. — Theodore Roosevelt",
+  "Act as if what you do makes a difference. It does. — William James",
+  "Success is not final, failure is not fatal: it is the courage to continue that counts. — Winston Churchill",
+  "What lies behind us and what lies before us are tiny matters compared to what lies within us. — Emerson",
+  "The only way to do great work is to love what you do. — Steve Jobs",
+];
+
 document.addEventListener("DOMContentLoaded", () => {
 
   /* ── ELEMENTS ── */
@@ -46,6 +59,11 @@ document.addEventListener("DOMContentLoaded", () => {
     toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2500);
   }
 
+  /* ── QUOTE OF THE DAY ── */
+  const quoteText = document.getElementById("quoteText");
+  const dayIndex  = Math.floor(Date.now() / 86400000) % QUOTES.length;
+  quoteText.textContent = QUOTES[dayIndex];
+
   /* ── THEME TOGGLE ── */
   const themeToggle = document.getElementById("themeToggle");
   if (localStorage.getItem("theme") === "light") {
@@ -73,7 +91,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("gradientInput").value = savedGradient;
   }
 
-  // Preset swatches
   const swatchContainer = document.getElementById("presetSwatches");
   BG_PRESETS.forEach(bg => {
     const s = document.createElement("div");
@@ -176,8 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
     impian.value = localStorage.getItem("impian") || "";
     kenang.value = localStorage.getItem("kenang") || "";
     pesan.value  = localStorage.getItem("pesan")  || "";
-    kenangCount.textContent = kenang.value.length;
-    pesanCount.textContent  = pesan.value.length;
+    updateCounters();
     if (nama.value || kelas.value || tahun.value) resultCard.classList.add("show");
   }
 
@@ -190,37 +206,55 @@ document.addEventListener("DOMContentLoaded", () => {
     outPesan.textContent  = pesan.value;
   }
 
-  function saveData() {
+  function saveData(showConfetti = false) {
     ["nama","kelas","tahun","impian","kenang","pesan"].forEach(k =>
       localStorage.setItem(k, document.getElementById(k).value)
     );
     updateOutput();
     resultCard.classList.add("show");
     toast("Memories saved ✓");
+    if (showConfetti) confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
   }
 
-  saveBtn.addEventListener("click", saveData);
+  saveBtn.addEventListener("click", () => saveData(true));
 
-  // Debounced auto-save
+  // Ctrl/Cmd+S shortcut
+  document.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+      e.preventDefault();
+      saveData(true);
+    }
+  });
+
+  // Debounced auto-save (no confetti)
   let autoTimer;
   [nama, kelas, tahun, impian, kenang, pesan].forEach(el => {
     el.addEventListener("input", () => {
       clearTimeout(autoTimer);
-      autoTimer = setTimeout(saveData, 900);
+      autoTimer = setTimeout(() => saveData(false), 900);
     });
   });
 
-  // Char counters
-  kenang.addEventListener("input", () => kenangCount.textContent = kenang.value.length);
-  pesan.addEventListener("input",  () => pesanCount.textContent  = pesan.value.length);
+  /* ── CHAR COUNTERS ── */
+  function updateCounter(countEl, length) {
+    countEl.textContent = length;
+    countEl.classList.toggle("counter-warn", length >= 280);
+  }
+
+  function updateCounters() {
+    updateCounter(kenangCount, kenang.value.length);
+    updateCounter(pesanCount,  pesan.value.length);
+  }
+
+  kenang.addEventListener("input", () => updateCounter(kenangCount, kenang.value.length));
+  pesan.addEventListener("input",  () => updateCounter(pesanCount,  pesan.value.length));
 
   /* ── CLEAR ALL ── */
   document.getElementById("clearBtn").addEventListener("click", () => {
     if (!confirm("Clear all saved data? This cannot be undone.")) return;
     localStorage.clear();
     [nama, kelas, tahun, impian, kenang, pesan].forEach(el => el.value = "");
-    kenangCount.textContent = "0";
-    pesanCount.textContent  = "0";
+    updateCounters();
     avatarPreview.innerHTML = "👤";
     resultAvatar.innerHTML  = "";
     resultCard.classList.remove("show");
@@ -233,6 +267,89 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     document.body.style.background = DEFAULT_BG;
     toast("All data cleared");
+  });
+
+  /* ── EXPORT / IMPORT ── */
+  document.getElementById("exportBtn").addEventListener("click", async () => {
+    const db  = await dbPromise;
+    const req = db.transaction("images").objectStore("images").get("galleryImages");
+    req.onsuccess = () => {
+      const data = {
+        nama:   localStorage.getItem("nama")   || "",
+        kelas:  localStorage.getItem("kelas")  || "",
+        tahun:  localStorage.getItem("tahun")  || "",
+        impian: localStorage.getItem("impian") || "",
+        kenang: localStorage.getItem("kenang") || "",
+        pesan:  localStorage.getItem("pesan")  || "",
+        avatar: localStorage.getItem("userAvatar") || "",
+        gradient: localStorage.getItem("userGradient") || "",
+        gallery: req.result || [],
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `whatremains-backup-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast("Backup exported");
+    };
+  });
+
+  document.getElementById("importFile").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        ["nama","kelas","tahun","impian","kenang","pesan"].forEach(k => {
+          if (data[k] !== undefined) localStorage.setItem(k, data[k]);
+        });
+        if (data.avatar)   localStorage.setItem("userAvatar", data.avatar);
+        if (data.gradient) localStorage.setItem("userGradient", data.gradient);
+
+        if (Array.isArray(data.gallery) && data.gallery.length) {
+          const db = await dbPromise;
+          const tx = db.transaction("images", "readwrite");
+          tx.objectStore("images").put(data.gallery, "galleryImages");
+          tx.oncomplete = () => { images = data.gallery; renderGallery(); };
+        }
+
+        loadFields();
+        updateOutput();
+        if (data.avatar) setAvatar(data.avatar);
+        if (data.gradient) { applyBg(data.gradient); document.getElementById("gradientInput").value = data.gradient; }
+        resultCard.classList.add("show");
+        toast("Backup imported ✓");
+      } catch {
+        toast("Invalid backup file");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  /* ── SHARE ── */
+  document.getElementById("shareBtn").addEventListener("click", async () => {
+    if (!navigator.share && !navigator.clipboard) {
+      toast("Sharing not supported in this browser");
+      return;
+    }
+    try {
+      const canvas = await html2canvas(resultCard, { scale: 2, useCORS: true });
+      canvas.toBlob(async blob => {
+        const file = new File([blob], "my-memories.png", { type: "image/png" });
+        if (navigator.share && navigator.canShare({ files: [file] })) {
+          await navigator.share({ title: "What Remains", files: [file] });
+        } else {
+          // Fallback: copy image to clipboard
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+          toast("Card copied to clipboard");
+        }
+      });
+    } catch (err) {
+      if (err.name !== "AbortError") toast("Could not share card");
+    }
   });
 
   /* ── GALLERY ── */

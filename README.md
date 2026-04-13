@@ -33,10 +33,33 @@ WhatRemains/
 ├── index.html   # markup
 ├── style.css    # styles
 ├── script.js    # logic
+├── server.js    # optional local dev server with live reload
+├── export.py    # export memory card to PDF
 └── LICENSE
 ```
 
 Data is stored in your browser's `localStorage` (text fields, avatar, theme, background) and `IndexedDB` (gallery photos). Clearing browser data will erase everything.
+
+### Local dev server (optional)
+
+`server.js` is a zero-dependency Node.js file server with **live reload** — the browser auto-refreshes whenever any file changes.
+
+```bash
+node server.js
+# → http://localhost:3000
+```
+
+No `npm install` needed.
+
+### PDF export (optional)
+
+`export.py` exports the memory card content to a PDF using [ReportLab](https://pypi.org/project/reportlab/).
+
+```bash
+pip install reportlab
+python export.py
+# → WhatRemains_export.pdf
+```
 
 ## External Libraries (CDN)
 

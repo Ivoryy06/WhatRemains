@@ -1,64 +1,69 @@
 #!/usr/bin/env python3
 """
 export.py - Export WhatRemains content to PDF
-Usage: python export.py
+Usage: python export.py [--light]
 Requires: pip install reportlab
 """
 
+import sys
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable, PageBreak
+from reportlab.platypus.flowables import Flowable
 
 output = "WhatRemains_export.pdf"
+
+# Match site theme — dark by default, --light flag for light mode
+LIGHT = "--light" in sys.argv
+
+if LIGHT:
+    BG       = colors.HexColor("#c5cae9")   # mid-point of light gradient
+    TEXT     = colors.HexColor("#1a1a2e")
+    MUTED    = colors.HexColor("#555577")
+    RULE     = colors.HexColor("#9fa8da")
+else:
+    BG       = colors.HexColor("#203a43")   # mid-point of dark gradient
+    TEXT     = colors.HexColor("#f0f0f0")
+    MUTED    = colors.HexColor("#aabbcc")
+    RULE     = colors.HexColor("#2c5364")
+
+
+class ColoredBackground(Flowable):
+    """Draws a full-page background rectangle before content."""
+    def __init__(self, color, width, height):
+        super().__init__()
+        self._color = color
+        self._w = width
+        self._h = height
+
+    def draw(self):
+        self.canv.setFillColor(self._color)
+        self.canv.rect(-20*mm, -20*mm, self._w + 40*mm, self._h + 40*mm, fill=1, stroke=0)
+
 
 styles = getSampleStyleSheet()
 
 title_style = ParagraphStyle(
-    "GameTitle",
-    parent=styles["Title"],
-    fontSize=28,
-    leading=34,
-    textColor=colors.HexColor("#1a1a2e"),
-    spaceAfter=6,
+    "GameTitle", parent=styles["Title"],
+    fontSize=28, leading=34, textColor=TEXT, spaceAfter=6,
 )
-
 subtitle_style = ParagraphStyle(
-    "Subtitle",
-    parent=styles["Normal"],
-    fontSize=12,
-    leading=16,
-    textColor=colors.HexColor("#555577"),
-    spaceAfter=20,
+    "Subtitle", parent=styles["Normal"],
+    fontSize=12, leading=16, textColor=MUTED, spaceAfter=20,
 )
-
 heading_style = ParagraphStyle(
-    "SectionHeading",
-    parent=styles["Heading1"],
-    fontSize=12,
-    leading=16,
-    textColor=colors.HexColor("#1a1a2e"),
-    spaceBefore=16,
-    spaceAfter=6,
+    "SectionHeading", parent=styles["Heading1"],
+    fontSize=12, leading=16, textColor=TEXT, spaceBefore=16, spaceAfter=6,
 )
-
 body_style = ParagraphStyle(
-    "Body",
-    parent=styles["Normal"],
-    fontSize=10,
-    leading=14,
-    textColor=colors.HexColor("#333333"),
-    spaceAfter=2,
+    "Body", parent=styles["Normal"],
+    fontSize=10, leading=14, textColor=TEXT, spaceAfter=2,
 )
-
 label_style = ParagraphStyle(
-    "Label",
-    parent=styles["Normal"],
-    fontSize=10,
-    leading=14,
-    textColor=colors.HexColor("#888888"),
-    spaceAfter=20,
+    "Label", parent=styles["Normal"],
+    fontSize=10, leading=14, textColor=MUTED, spaceAfter=20,
 )
 
 PAGES = [
@@ -90,21 +95,19 @@ PAGES = [
 ]
 
 def build():
+    w, h = A4
     doc = SimpleDocTemplate(
-        output,
-        pagesize=A4,
-        leftMargin=20*mm,
-        rightMargin=20*mm,
-        topMargin=20*mm,
-        bottomMargin=20*mm,
+        output, pagesize=A4,
+        leftMargin=20*mm, rightMargin=20*mm,
+        topMargin=20*mm, bottomMargin=20*mm,
     )
 
     story = []
-
     for i, page in enumerate(PAGES):
+        story.append(ColoredBackground(BG, w, h))
         story.append(Paragraph(page["title"], title_style))
         story.append(Paragraph(page["subtitle"], subtitle_style))
-        story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#cccccc")))
+        story.append(HRFlowable(width="100%", thickness=0.5, color=RULE))
         story.append(Spacer(1, 6*mm))
         story.append(Paragraph(page["body"], body_style))
         if i < len(PAGES) - 1:

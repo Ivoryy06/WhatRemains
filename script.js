@@ -442,7 +442,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ── DOWNLOAD ── */
   document.getElementById("downloadBtn").addEventListener("click", () => {
-    html2canvas(resultCard, { scale: 2, useCORS: true }).then(canvas => {
+    const bg = document.body.style.background
+      || getComputedStyle(document.body).background
+      || "#203a43";
+
+    // Create a wrapper with the body background so html2canvas composites correctly
+    const wrapper = document.createElement("div");
+    wrapper.style.cssText = `
+      position:fixed; top:-9999px; left:-9999px;
+      padding:24px; background:${bg};
+      border-radius:24px; display:inline-block;
+    `;
+    const clone = resultCard.cloneNode(true);
+    clone.style.margin = "0";
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
+
+    html2canvas(wrapper, { scale: 2, useCORS: true, backgroundColor: null }).then(canvas => {
+      document.body.removeChild(wrapper);
       const a = document.createElement("a");
       a.download = `${nama.value || "memories"}.png`;
       a.href = canvas.toDataURL();

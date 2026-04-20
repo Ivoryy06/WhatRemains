@@ -442,17 +442,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ── DOWNLOAD ── */
   document.getElementById("downloadBtn").addEventListener("click", () => {
-    const isLight = document.body.classList.contains("light");
-    const solidBg = isLight ? "#c5cae9" : "#203a43";
+    html2canvas(resultCard, { scale: 2, useCORS: true, backgroundColor: null }).then(cardCanvas => {
+      // Get the actual background currently applied to body
+      const bg = document.body.style.background || getComputedStyle(document.body).getPropertyValue("background");
 
-    html2canvas(resultCard, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: solidBg,
-    }).then(canvas => {
+      const pad = 48;
+      const W = cardCanvas.width + pad * 2;
+      const H = cardCanvas.height + pad * 2;
+
+      const out = document.createElement("canvas");
+      out.width  = W;
+      out.height = H;
+      const ctx = out.getContext("2d");
+
+      // Paint gradient background
+      const isLight = document.body.classList.contains("light");
+      const stops = isLight
+        ? [["#e8eaf6", 0], ["#c5cae9", 0.5], ["#9fa8da", 1]]
+        : [["#0f2027", 0], ["#203a43", 0.5], ["#2c5364", 1]];
+
+      const grad = ctx.createLinearGradient(0, 0, W * 0.6, H);
+      stops.forEach(([color, pos]) => grad.addColorStop(pos, color));
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Draw card on top
+      ctx.drawImage(cardCanvas, pad, pad);
+
       const a = document.createElement("a");
       a.download = `${nama.value || "memories"}.png`;
-      a.href = canvas.toDataURL();
+      a.href = out.toDataURL();
       a.click();
       toast("Card downloaded");
     });

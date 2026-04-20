@@ -11,7 +11,6 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable, PageBreak
-from reportlab.platypus.flowables import Flowable
 
 output = "WhatRemains_export.pdf"
 
@@ -28,19 +27,6 @@ else:
     TEXT     = colors.HexColor("#f0f0f0")
     MUTED    = colors.HexColor("#aabbcc")
     RULE     = colors.HexColor("#2c5364")
-
-
-class ColoredBackground(Flowable):
-    """Draws a full-page background rectangle before content."""
-    def __init__(self, color, width, height):
-        super().__init__()
-        self._color = color
-        self._w = width
-        self._h = height
-
-    def draw(self):
-        self.canv.setFillColor(self._color)
-        self.canv.rect(-20*mm, -20*mm, self._w + 40*mm, self._h + 40*mm, fill=1, stroke=0)
 
 
 styles = getSampleStyleSheet()
@@ -94,6 +80,12 @@ PAGES = [
     },
 ]
 
+def _bg_canvas(canvas, doc):
+    canvas.saveState()
+    canvas.setFillColor(BG)
+    canvas.rect(0, 0, *A4, fill=1, stroke=0)
+    canvas.restoreState()
+
 def build():
     w, h = A4
     doc = SimpleDocTemplate(
@@ -104,7 +96,6 @@ def build():
 
     story = []
     for i, page in enumerate(PAGES):
-        story.append(ColoredBackground(BG, w, h))
         story.append(Paragraph(page["title"], title_style))
         story.append(Paragraph(page["subtitle"], subtitle_style))
         story.append(HRFlowable(width="100%", thickness=0.5, color=RULE))
@@ -113,7 +104,7 @@ def build():
         if i < len(PAGES) - 1:
             story.append(PageBreak())
 
-    doc.build(story)
+    doc.build(story, onFirstPage=_bg_canvas, onLaterPages=_bg_canvas)
     print(f"Exported to {output}")
 
 if __name__ == "__main__":

@@ -26,7 +26,7 @@ const QUOTES = [
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  /* ── ELEMENTS ── */
+  
   const nama   = document.getElementById("nama");
   const kelas  = document.getElementById("kelas");
   const tahun  = document.getElementById("tahun");
@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const kenangCount  = document.getElementById("kenangCount");
   const pesanCount   = document.getElementById("pesanCount");
 
-  /* ── TOAST ── */
+  
   const toastEl = document.getElementById("toast");
   let toastTimer;
   function toast(msg) {
@@ -59,12 +59,12 @@ document.addEventListener("DOMContentLoaded", () => {
     toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2500);
   }
 
-  /* ── QUOTE OF THE DAY ── */
+  
   const quoteText = document.getElementById("quoteText");
   const dayIndex  = Math.floor(Date.now() / 86400000) % QUOTES.length;
   quoteText.textContent = QUOTES[dayIndex];
 
-  /* ── THEME TOGGLE ── */
+  
   const themeToggle = document.getElementById("themeToggle");
   if (localStorage.getItem("theme") === "light") {
     document.body.classList.add("light");
@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("theme", isLight ? "light" : "dark");
   });
 
-  /* ── BACKGROUND ── */
+  
   const DEFAULT_BG = "linear-gradient(160deg,#0f2027,#203a43,#2c5364)";
 
   function applyBg(val) {
@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toast("Background reset");
   });
 
-  /* ── INDEXEDDB ── */
+  
   const dbPromise = new Promise((resolve, reject) => {
     const req = indexedDB.open("MemoryAppDB", 1);
     req.onupgradeneeded = () => req.result.createObjectStore("images");
@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
     req.onerror   = () => reject(req.error);
   });
 
-  /* ── AVATAR & CROPPER ── */
+  
   const avatarInput   = document.getElementById("avatarInput");
   const avatarPreview = document.getElementById("avatarPreview");
   const cropModal     = document.getElementById("cropModal");
@@ -185,7 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
     avatarInput.value = "";
   });
 
-  /* ── FIELDS ── */
+  
   function loadFields() {
     nama.value   = localStorage.getItem("nama")   || "";
     kelas.value  = localStorage.getItem("kelas")  || "";
@@ -218,7 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   saveBtn.addEventListener("click", () => saveData(true));
 
-  // Ctrl/Cmd+S shortcut
+  
   document.addEventListener("keydown", e => {
     if ((e.ctrlKey || e.metaKey) && e.key === "s") {
       e.preventDefault();
@@ -226,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Debounced auto-save (no confetti)
+  
   let autoTimer;
   [nama, kelas, tahun, impian, kenang, pesan].forEach(el => {
     el.addEventListener("input", () => {
@@ -235,7 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  /* ── CHAR COUNTERS ── */
+  
   function updateCounter(countEl, length) {
     countEl.textContent = length;
     countEl.classList.toggle("counter-warn", length >= 280);
@@ -249,7 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
   kenang.addEventListener("input", () => updateCounter(kenangCount, kenang.value.length));
   pesan.addEventListener("input",  () => updateCounter(pesanCount,  pesan.value.length));
 
-  /* ── CLEAR ALL ── */
+  
   document.getElementById("clearBtn").addEventListener("click", () => {
     if (!confirm("Clear all saved data? This cannot be undone.")) return;
     localStorage.clear();
@@ -269,7 +269,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toast("All data cleared");
   });
 
-  /* ── EXPORT / IMPORT ── */
+  
   document.getElementById("exportBtn").addEventListener("click", async () => {
     const db  = await dbPromise;
     const req = db.transaction("images").objectStore("images").get("galleryImages");
@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
     e.target.value = "";
   });
 
-  /* ── SHARE ── */
+  
   document.getElementById("shareBtn").addEventListener("click", async () => {
     if (!navigator.share && !navigator.clipboard) {
       toast("Sharing not supported in this browser");
@@ -342,7 +342,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (navigator.share && navigator.canShare({ files: [file] })) {
           await navigator.share({ title: "What Remains", files: [file] });
         } else {
-          // Fallback: copy image to clipboard
+          
           await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
           toast("Card copied to clipboard");
         }
@@ -352,7 +352,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* ── GALLERY ── */
+  
   const gallery    = document.getElementById("gallery");
   const imageInput = document.getElementById("images");
   let images    = [];
@@ -426,7 +426,7 @@ document.addEventListener("DOMContentLoaded", () => {
     saveGallery();
   });
 
-  /* ── LIGHTBOX ── */
+  
   const lightbox      = document.getElementById("lightbox");
   const lightboxImg   = document.getElementById("lightboxImg");
   const lightboxClose = document.getElementById("lightboxClose");
@@ -440,10 +440,10 @@ document.addEventListener("DOMContentLoaded", () => {
   lightbox.addEventListener("click", e => { if (e.target === lightbox) lightbox.classList.remove("open"); });
   document.addEventListener("keydown", e => { if (e.key === "Escape") lightbox.classList.remove("open"); });
 
-  /* ── DOWNLOAD ── */
+  
   document.getElementById("downloadBtn").addEventListener("click", () => {
     html2canvas(resultCard, { scale: 2, useCORS: true, backgroundColor: null }).then(cardCanvas => {
-      // Get the actual background currently applied to body
+      
       const bg = document.body.style.background || getComputedStyle(document.body).getPropertyValue("background");
 
       const pad = 48;
@@ -455,7 +455,7 @@ document.addEventListener("DOMContentLoaded", () => {
       out.height = H;
       const ctx = out.getContext("2d");
 
-      // Paint gradient background
+      
       const isLight = document.body.classList.contains("light");
       const stops = isLight
         ? [["#e8eaf6", 0], ["#c5cae9", 0.5], ["#9fa8da", 1]]
@@ -466,7 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, W, H);
 
-      // Draw card on top
+      
       ctx.drawImage(cardCanvas, pad, pad);
 
       const a = document.createElement("a");
@@ -477,7 +477,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  /* ── INIT ── */
+  
   loadFields();
   updateOutput();
   initGallery();

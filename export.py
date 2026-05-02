@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 """
 export.py - Export WhatRemains content to PDF
 Usage: python export.py [--light]
@@ -14,16 +14,16 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable,
 
 output = "WhatRemains_export.pdf"
 
-# Match site theme — dark by default, --light flag for light mode
+
 LIGHT = "--light" in sys.argv
 
 if LIGHT:
-    BG       = colors.HexColor("#c5cae9")   # mid-point of light gradient
+    BG       = colors.HexColor("#c5cae9")   
     TEXT     = colors.HexColor("#1a1a2e")
     MUTED    = colors.HexColor("#555577")
     RULE     = colors.HexColor("#9fa8da")
 else:
-    BG       = colors.HexColor("#203a43")   # mid-point of dark gradient
+    BG       = colors.HexColor("#203a43")   
     TEXT     = colors.HexColor("#f0f0f0")
     MUTED    = colors.HexColor("#aabbcc")
     RULE     = colors.HexColor("#2c5364")

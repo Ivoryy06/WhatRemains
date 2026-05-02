@@ -1,4 +1,4 @@
-/* ===== RESET & BASE ===== */
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
@@ -38,7 +38,7 @@ body {
   animation: pageFadeIn 0.7s ease-out both;
 }
 
-/* ===== HEADER ===== */
+
 header {
   max-width: 600px;
   margin: 0 auto 10px;
@@ -80,7 +80,7 @@ header .subtitle {
 
 .icon-btn:hover { transform: scale(1.1); }
 
-/* ===== CARD ===== */
+
 .card {
   max-width: 600px;
   margin: 20px auto;
@@ -102,7 +102,7 @@ header .subtitle {
 
 .card-header h3 { flex: 1; font-size: 16px; font-weight: 600; }
 
-/* ===== PROFILE ===== */
+
 .profile {
   display: flex;
   flex-direction: column;
@@ -133,7 +133,7 @@ header .subtitle {
 
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-/* ===== FILE INPUTS ===== */
+
 input[type="file"] { display: none; }
 
 .file-btn {
@@ -165,7 +165,7 @@ input[type="file"] { display: none; }
 
 .file-btn-sm:hover { transform: translateY(-1px); }
 
-/* ===== FIELDS ===== */
+
 .field-group {
   display: flex;
   flex-direction: column;
@@ -211,7 +211,7 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
 
 textarea { resize: none; height: 90px; }
 
-/* ===== CHARACTER COUNTER ===== */
+
 .char-counter {
   font-size: 11px;
   font-weight: 400;
@@ -220,7 +220,7 @@ textarea { resize: none; height: 90px; }
 
 .counter-warn { color: var(--danger) !important; font-weight: 700; }
 
-/* ===== BUTTONS ===== */
+
 button {
   padding: 12px 20px;
   background: linear-gradient(135deg, var(--accent), var(--accent-dark));
@@ -284,7 +284,7 @@ button:active { transform: scale(0.97); opacity: 0.85; }
 
 .danger-card { padding: 18px 28px; }
 
-/* ===== COLLAPSIBLE ===== */
+
 .collapsible {
   margin-top: 20px;
   border: 1px solid var(--card-border);
@@ -325,7 +325,7 @@ button:active { transform: scale(0.97); opacity: 0.85; }
 
 .swatch:hover { transform: scale(1.15); border-color: var(--accent); }
 
-/* ===== RESULT CARD ===== */
+
 .result {
   opacity: 0;
   transform: translateY(12px);
@@ -390,7 +390,7 @@ blockquote {
   line-height: 1.6;
 }
 
-/* ===== GALLERY ===== */
+
 .gallery {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
@@ -449,7 +449,7 @@ blockquote {
 .gallery-item:hover .remove-btn { opacity: 1; }
 .gallery-item .remove-btn:hover { background: var(--danger); transform: none; box-shadow: none; }
 
-/* ===== CROP MODAL ===== */
+
 #cropModal {
   display: none;
   position: fixed;
@@ -482,7 +482,7 @@ blockquote {
 
 #cropContent button { width: auto; padding: 10px 24px; font-size: 14px; }
 
-/* ===== LIGHTBOX ===== */
+
 #lightbox {
   display: none;
   position: fixed;
@@ -522,7 +522,7 @@ blockquote {
 
 #lightboxClose:hover { background: rgba(255,255,255,0.25); transform: none; box-shadow: none; }
 
-/* ===== TOAST ===== */
+
 #toast {
   position: fixed;
   bottom: 28px;
@@ -547,18 +547,18 @@ blockquote {
   transform: translateX(-50%) translateY(0);
 }
 
-/* ===== ANIMATIONS ===== */
+
 @keyframes pageFadeIn {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== REDUCED MOTION ===== */
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
-/* ===== PRINT ===== */
+
 @media print {
   body { background: #fff !important; color: #000; padding: 0; animation: none; }
   header, .card:not(#resultCard), #toast, #lightbox, #cropModal { display: none !important; }
@@ -577,7 +577,7 @@ blockquote {
   .section-label { color: #555; }
 }
 
-/* ===== MOBILE ===== */
+
 @media (max-width: 480px) {
   .btn-row, .field-row { grid-template-columns: 1fr; }
   .card { padding: 20px; }

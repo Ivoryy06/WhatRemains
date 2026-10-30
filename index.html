@@ -3,139 +3,167 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <title>What Remains</title>
-  <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet"/>
+  <meta name="description" content="A keepsake card for the year that shaped you. Everything stays on your device.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div id="toast"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
 
-  <header>
-    <h1>What Remains</h1>
-    <p class="subtitle">A keepsake for the year that shaped you.</p>
-    <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">🌙</button>
+  <header class="top">
+    <div>
+      <h1>What Remains</h1>
+      <p class="subtitle">A keepsake for the year that shaped you.</p>
+    </div>
+    <button id="themeToggle" class="btn ghost small" type="button" aria-label="Switch between light and dark">Dark</button>
   </header>
 
-  
-  <div class="card">
-    <div class="profile">
-      <div class="avatar" id="avatarPreview">👤</div>
-      <label for="avatarInput" class="file-btn">Upload Photo</label>
-      <input type="file" id="avatarInput" accept="image/*">
-    </div>
+  <main class="layout">
 
-    <div class="field-group">
-      <label>Full Name</label>
-      <input id="nama" placeholder="e.g. Alex Rivera">
-    </div>
-    <div class="field-row">
-      <div class="field-group">
-        <label>Class</label>
-        <input id="kelas" placeholder="e.g. 12-A">
+    <!-- the form -->
+    <section class="panel" aria-labelledby="formTitle">
+      <div class="panel-head">
+        <h2 id="formTitle">Your page</h2>
+        <span id="saveState" class="save-state" aria-live="polite">Saves as you type</span>
       </div>
-      <div class="field-group">
-        <label>Graduation Year</label>
-        <input id="tahun" placeholder="e.g. 2026">
-      </div>
-    </div>
-    <div class="field-group">
-      <label>Dream after graduation</label>
-      <input id="impian" placeholder="e.g. Software engineer">
-    </div>
 
-    <div class="field-group">
-      <label>Most meaningful memory <span class="char-counter"><span id="kenangCount">0</span>/300</span></label>
-      <textarea id="kenang" placeholder="Write about a moment you'll never forget…" maxlength="300"></textarea>
-    </div>
-
-    <div class="field-group">
-      <label>Message to your future self <span class="char-counter"><span id="pesanCount">0</span>/300</span></label>
-      <textarea id="pesan" placeholder="What do you want to remember?" maxlength="300"></textarea>
-    </div>
-
-    <div class="btn-row">
-      <button id="saveBtn">💾 Save</button>
-      <button id="downloadBtn" class="btn-secondary">📥 Download Card</button>
-    </div>
-    <div class="btn-row" style="margin-top:10px">
-      <button id="shareBtn" class="btn-secondary">🔗 Share Card</button>
-      <button id="exportBtn" class="btn-secondary">📤 Export Backup</button>
-    </div>
-    <div style="margin-top:10px">
-      <label for="importFile" class="file-btn-sm" style="width:100%;text-align:center;display:block">📥 Import Backup</label>
-      <input type="file" id="importFile" accept=".json">
-    </div>
-
-    <details class="collapsible">
-      <summary>🎨 Customize Background</summary>
-      <div class="collapsible-body">
-        <div class="preset-swatches" id="presetSwatches"></div>
-        <div class="field-row" style="margin-top:10px">
-          <input id="gradientInput" placeholder="e.g. linear-gradient(135deg,#0f2027,#2c5364)">
-          <button id="gradientBtn" class="btn-sm">Apply</button>
+      <div class="profile">
+        <button id="avatarBtn" class="avatar" type="button" aria-label="Choose a profile photo"><span id="avatarPreview">+</span></button>
+        <div>
+          <button id="avatarPick" class="btn ghost small" type="button">Choose a photo</button>
+          <button id="avatarRemove" class="link" type="button" hidden>Remove</button>
         </div>
-        <button id="resetBgBtn" class="btn-ghost">Reset to default</button>
+        <input type="file" id="avatarInput" accept="image/*" hidden>
       </div>
-    </details>
-  </div>
 
-  
-  <div class="card result" id="resultCard">
-    <div class="result-header">
-      <div class="result-avatar" id="resultAvatar"></div>
-      <div>
-        <h2 id="outNama"></h2>
-        <span class="tag" id="outKelas"></span>
-        <span class="tag" id="outTahun"></span>
+      <div class="field">
+        <label for="nama">Full name</label>
+        <input id="nama" autocomplete="name" placeholder="e.g. Alex Rivera">
       </div>
-    </div>
-    <p>Dreaming of becoming <b id="outImpian"></b>.</p>
-    <div class="result-section">
-      <p class="section-label">Most meaningful memory</p>
-      <p id="outKenang"></p>
-    </div>
-    <div class="result-section">
-      <p class="section-label">To my future self</p>
-      <blockquote id="outPesan"></blockquote>
-    </div>
-    <div class="result-section" id="quoteSection">
-      <p class="section-label">Quote of the day</p>
-      <blockquote id="quoteText"></blockquote>
-    </div>
-  </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="kelas">Class</label>
+          <input id="kelas" placeholder="e.g. 12-A">
+        </div>
+        <div class="field">
+          <label for="tahun">Graduation year</label>
+          <input id="tahun" inputmode="numeric" placeholder="e.g. 2026">
+        </div>
+      </div>
+      <div class="field">
+        <label for="impian">Dream after graduation</label>
+        <input id="impian" placeholder="e.g. Software engineer">
+      </div>
+      <div class="field">
+        <label for="kenang">Most meaningful memory <span class="counter"><span id="kenangCount">0</span>/300</span></label>
+        <textarea id="kenang" maxlength="300" rows="4" placeholder="Write about a moment you'll never forget…"></textarea>
+      </div>
+      <div class="field">
+        <label for="pesan">Message to your future self <span class="counter"><span id="pesanCount">0</span>/300</span></label>
+        <textarea id="pesan" maxlength="300" rows="4" placeholder="What do you want to remember?"></textarea>
+      </div>
 
-  
-  <div class="card">
-    <div class="card-header">
-      <h3>Memory Gallery</h3>
-      <label for="images" class="file-btn-sm">+ Add Photos</label>
-      <input type="file" id="images" multiple accept="image/*">
-    </div>
-    <div id="gallery" class="gallery"></div>
-  </div>
+      <div class="actions">
+        <button id="saveBtn" class="btn" type="button">Save</button>
+        <button id="downloadBtn" class="btn ghost" type="button">Download card</button>
+        <button id="shareBtn" class="btn ghost" type="button">Share card</button>
+      </div>
 
-  
-  <div class="card danger-card">
-    <button id="clearBtn" class="btn-danger">🗑 Clear All Data</button>
-  </div>
+      <details class="more">
+        <summary>Backup and background</summary>
+        <div class="more-body">
+          <div>
+            <p class="more-label">Backup</p>
+            <div class="row">
+              <button id="exportBtn" class="btn ghost small" type="button">Export backup</button>
+              <button id="importBtn" class="btn ghost small" type="button">Import backup</button>
+              <input type="file" id="importFile" accept=".json,application/json" hidden>
+            </div>
+            <p class="help">Your page is kept in this browser only. Clearing browser data erases it, so export a copy now and then.</p>
+          </div>
 
-  
-  <div id="cropModal">
+          <div>
+            <p class="more-label">Card background</p>
+            <div class="swatches" id="presetSwatches" role="group" aria-label="Background presets"></div>
+            <div class="row" style="margin-top:12px">
+              <label for="gradientInput" class="sr-only">Custom CSS gradient</label>
+              <input id="gradientInput" placeholder="e.g. linear-gradient(135deg,#0f2027,#2c5364)">
+              <button id="gradientBtn" class="btn ghost small" type="button">Apply</button>
+            </div>
+            <button id="resetBgBtn" class="link" type="button">Reset to default</button>
+          </div>
+
+          <div>
+            <button id="clearBtn" class="link danger" type="button">Clear all my data</button>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- the card, always visible and always current -->
+    <aside class="stage" aria-label="Your memory card">
+      <div class="frame" id="cardFrame">
+        <article class="card" id="card">
+          <div class="card-head">
+            <div class="card-avatar" id="resultAvatar"></div>
+            <div class="card-who">
+              <h2 id="outNama" data-empty="Your name"></h2>
+              <p class="tags"><span class="tag" id="outKelas" data-empty="Class"></span><span class="tag" id="outTahun" data-empty="Year"></span></p>
+            </div>
+          </div>
+          <p class="dream" id="dreamLine">Dreaming of becoming <b id="outImpian" data-empty="…"></b>.</p>
+
+          <section class="card-sec" id="secKenang">
+            <h3>Most meaningful memory</h3>
+            <p id="outKenang" data-empty="Your memory will appear here."></p>
+          </section>
+          <section class="card-sec" id="secPesan">
+            <h3>To my future self</h3>
+            <blockquote id="outPesan" data-empty="Your message will appear here."></blockquote>
+          </section>
+          <section class="card-sec quote" id="quoteSection">
+            <h3>Quote of the day</h3>
+            <blockquote id="quoteText"></blockquote>
+          </section>
+          <p class="card-foot">What Remains</p>
+        </article>
+      </div>
+    </aside>
+
+    <!-- gallery -->
+    <section class="panel wide" aria-labelledby="galTitle">
+      <div class="panel-head">
+        <h2 id="galTitle">Memory gallery</h2>
+        <button id="addPhotos" class="btn ghost small" type="button">Add photos</button>
+        <input type="file" id="images" multiple accept="image/*" hidden>
+      </div>
+      <div id="gallery" class="gallery"></div>
+    </section>
+
+  </main>
+
+  <div id="cropModal" role="dialog" aria-modal="true" aria-labelledby="cropTitle" hidden>
     <div id="cropContent">
-      <h3>Crop Profile Photo</h3>
-      <img id="cropImage">
+      <h3 id="cropTitle">Crop your photo</h3>
+      <div class="crop-area"><img id="cropImage" alt="Photo to crop"></div>
       <div class="crop-actions">
-        <button id="cropConfirm">Save</button>
-        <button id="cropCancel" class="btn-ghost-dark">Cancel</button>
+        <button id="cropCancel" class="btn ghost small" type="button">Cancel</button>
+        <button id="cropConfirm" class="btn small" type="button">Use this photo</button>
       </div>
     </div>
   </div>
 
-  
-  <div id="lightbox">
-    <button id="lightboxClose" aria-label="Close">✕</button>
-    <img id="lightboxImg" alt="Full size memory photo">
+  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer" hidden>
+    <button id="lightboxClose" type="button" aria-label="Close">Close</button>
+    <button id="lightboxPrev" class="lb-nav prev" type="button" aria-label="Previous photo">‹</button>
+    <img id="lightboxImg" alt="">
+    <button id="lightboxNext" class="lb-nav next" type="button" aria-label="Next photo">›</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
